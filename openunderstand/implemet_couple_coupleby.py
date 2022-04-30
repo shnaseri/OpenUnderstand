@@ -83,7 +83,11 @@ class ClassTypeData:
         return self.package_name + "." + self.baseClass.getText()
 
     def get_type(self) -> str:
-        return "implements" + " " + self.baseClass.getText()
+        result_str = "implements "
+        for child in self.baseClass.children:
+            if isinstance(child, JavaParserLabeled.TypeTypeContext):
+                result_str += child.getText() + ","
+        return result_str[:len(result_str) - 1]
 
     def get_name(self) -> str:
         return str(self.childClass.IDENTIFIER())
@@ -99,6 +103,9 @@ class ClassTypeData:
 
     def get_base_contents(self):
         return self.baseClass.getText()
+
+    def get_base_children(self):
+        return [child for child in self.baseClass.children if isinstance(child, JavaParserLabeled.TypeTypeContext)]
 
 
 class DataBaseHandler():
@@ -234,7 +241,7 @@ class Project:
         kindModel = KindModel.get_or_none(_name=getNameEntity(cls_data.get_prefixes()))
         if kindModel is None:
             print(getNameEntity(cls_data.get_prefixes()))
-        extend_implicit_entity, _ = EntityModel.get_or_create(
+        implemented_class_entity, _ = EntityModel.get_or_create(
             _kind=kindModel._id,
             _parent=parent_entity._id,
             _name=cls_data.get_name(),
@@ -242,15 +249,18 @@ class Project:
             _longname=cls_data.get_long_name(),
             _contents=cls_data.get_contents()
         )
-        base_class_entity, _ = EntityModel.get_or_create(
-            _kind=KindModel.get_or_none(_name=getNameEntity(cls_data.get_prefixes()))._id,
-            _parent=parent_entity._id,  # To do
-            _name=cls_data.get_base_class_name(),
-            _type=None,
-            _longname=cls_data.get_base_long_name(),
-            _contents=cls_data.get_base_contents()
-        )
-        return extend_implicit_entity, base_class_entity
+        base_entity_class_list = []
+        for base_class in cls_data.get_base_children():
+            base_class_entity, _ = EntityModel.get_or_create(
+                _kind=116,
+                _parent=parent_entity._id,  # To do
+                _name=base_class.getText(),
+                _type=None,
+                _longname=(cls_data.package_name + "." + base_class.getText()),
+                _contents=base_class.getText()
+            )
+            base_entity_class_list.append(base_class_entity)
+        return implemented_class_entity, base_entity_class_list
 
 
 def get_parse_tree(file_path):
@@ -272,23 +282,24 @@ def add_java_file_entity(file_path, file_name):
     return obj
 
 
-def add_references(importing_ent, imported_ent, cls_data: ClassTypeData, file_path):
-    ref, _ = ReferenceModel.get_or_create(
-        _kind=KindModel.get_or_none(_name="Java Extend Couple Implicit")._id,
-        _file_id=importing_ent._id,
-        _line=cls_data.line,
-        _column=cls_data.column,
-        _ent_id=imported_ent._id,
-        _scope_id=importing_ent._id,
-    )
-    inverse_ref, _ = ReferenceModel.get_or_create(
-        _kind=KindModel.get_or_none(_name="Java Extend Coupleby Implicit")._id,
-        _file_id=importing_ent._id,
-        _line=cls_data.line,
-        _column=cls_data.column,
-        _ent_id=importing_ent._id,
-        _scope_id=imported_ent._id,
-    )
+def add_references(importing_ent_list, imported_ent, cls_data: ClassTypeData, file_path):
+    for importing_ent in importing_ent_list:
+        ref, _ = ReferenceModel.get_or_create(
+            _kind=KindModel.get_or_none(_name="Java Extend Couple Implicit")._id,
+            _file_id=importing_ent._id,
+            _line=cls_data.line,
+            _column=cls_data.column,
+            _ent_id=imported_ent._id,
+            _scope_id=importing_ent._id,
+        )
+        inverse_ref, _ = ReferenceModel.get_or_create(
+            _kind=KindModel.get_or_none(_name="Java Extend Coupleby Implicit")._id,
+            _file_id=importing_ent._id,
+            _line=cls_data.line,
+            _column=cls_data.column,
+            _ent_id=importing_ent._id,
+            _scope_id=imported_ent._id,
+        )
 
 
 def main():
@@ -309,8 +320,8 @@ def main():
 
         for classType in my_listener.dbHandler.classTypes:
             classType.set_file_path(file_path)
-            imported_entity, base_entity = p.imported_entity_factory(classType)
-            add_references(base_entity, imported_entity, classType, file_path)
+            imported_entity, base_entity_list = p.imported_entity_factory(classType)
+            add_references(base_entity_list, imported_entity, classType, file_path)
 
 
 if __name__ == '__main__':

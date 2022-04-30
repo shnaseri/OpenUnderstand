@@ -82,7 +82,7 @@ class ClassTypeData:
         return self.prefixes
 
 
-class DataBaseHandler():
+class DataBaseHandler:
     def __init__(self):
         self.classTypes: list = []
 
@@ -265,7 +265,6 @@ def main():
     p.init_db()
     p.get_java_files()
     for file_path, file_name in zip(p.file_paths, p.file_names):
-        importing_entity = add_java_file_entity(file_path, file_name)
 
         tree = get_parse_tree(file_path)
         walker = ParseTreeWalker()
