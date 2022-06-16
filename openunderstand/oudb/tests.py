@@ -1,4 +1,4 @@
-from pprint import pprint
+from metrics.count_decl_method import main as count_decl_method
 
 try:
     import understand as und
@@ -6,28 +6,35 @@ except ImportError:
     print("Can not import understand")
 
 db = und.open(
-    "D:/UNI/term_6/Comiler/project/OpenUnderstand/benchmark/ganttproject/ganttproject/ganttproject/ganttproject.und")
+    "D:/UNI/term_6/Comiler/project/ym/OpenUnderstand/benchmark/jvlt-1.3.2/jvlt-1.3.2/src/src.und")
 
 kind_names = set()
+count = 0
+class_count_function = {}
+for ent in db.ents("Java Class ~Unknown ~Unresolved"):
+    cycle = ent.metric(['CountDeclMethod']).get('CountDeclMethod', 0)
+    ent_kind = ent.kind()
+    if cycle:
+        kind_names.add(ent_kind.__repr__())
+        count += cycle
+        class_count_function[ent.name()] = cycle + class_count_function.get(ent.name(), 0)
+print(class_count_function)
+print(count)
+# map_result = count_decl_function()
 
-for ent in db.ents():
-    for ref in ent.refs():
-        kind_names.add(ref.kindname())
-        if ref.kindname() == "Implicit Extend":
-            print(f"ent name: {ent.name()}, ent longname: {ent.longname()}, \n"
-                  f"ent parent: {ent.parent()}, ent kind: {ent.kind()}, ent value: {ent.value()},\n"
-                  f"ent type: {ent.type()}")
-            print("+++++++++++++++++++++++++")
-            # print(f"file kind: {ref.file().kind()}, parent: {ref.file().parent()}, long name: {ref.file().longname()}"
-            #       f"\nvalue: {ref.file().value()}, type: {ref.file().type()}, contents: {ref.file().contents()}, name: {ref.file().name()}")
 
-            print(f"entity: {ent}\n, ref: {ref}\n ref.scope: {ref.scope()}, ref.ent: {ref.ent()}\n"
-                  f"ref.line: {ref.line()}, ref.col: {ref.column()}, ref.file: {ref.file().name()}")
-            print("--------------------------------------------------------")
-            print(
-                f"ref.ent.name:{ref.ent().name()}, ref.ent.longname:{ref.ent().longname()} ,ref.ent.kind:{ref.ent().kind()}\n"
-                f"ref.ent.parent:{ref.ent().parent()}, ref.ent.value:{ref.ent().value()},ref.ent.type:{ref.ent().type()}\n"
-            )
-            print("**********************************************************")
-
+# map_result = count_decl_instance_method()
+# map_result = count_decl_instance_variable()
+map_result = count_decl_method()
+for key, index in class_count_function.items():
+    find = False
+    for key2, index2 in map_result.items():
+        if key == key2:
+            find = True
+            if index != index2:
+                continue
+                print(key)
+    if not find:
+        continue
+        print(key)
 c = 2
