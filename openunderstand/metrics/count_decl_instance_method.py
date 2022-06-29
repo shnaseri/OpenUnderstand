@@ -20,7 +20,6 @@ PROJECTS_NAME = [
     '105_freemind',
 ]
 DB_PATH = "../../database/jvlt-1.3.2.oudb"
-PROJECT_PATH = "../../benchmark/jvlt-1.3.2"
 PROJECT_NAME = "Sample App"
 
 
@@ -33,7 +32,7 @@ class Project:
         db_open(self.db_name)
 
 def main():
-    p = Project(DB_PATH, PROJECT_PATH, PROJECT_NAME)
+    p = Project(DB_PATH, PROJECT_NAME)
     p.init_db()
     count = 0
     class_count_function = {}
