@@ -32,7 +32,7 @@ class Project:
         db_open(self.db_name)
 
 def main():
-    p = Project(DB_PATH, PROJECT_PATH, PROJECT_NAME)
+    p = Project(DB_PATH, PROJECT_NAME)
     p.init_db()
     count = 0
     class_count_function = {}
