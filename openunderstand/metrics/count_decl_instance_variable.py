@@ -20,41 +20,19 @@ PROJECTS_NAME = [
     '105_freemind',
 ]
 DB_PATH = "../../database/jvlt-1.3.2.oudb"
-PROJECT_PATH = "../../benchmark/jvlt-1.3.2"
 PROJECT_NAME = "Sample App"
 
 
 class Project:
-    def __init__(self, db_name, project_dir, project_name=None):
+    def __init__(self, db_name, project_name=None):
         self.db_name = db_name
-        self.project_dir = project_dir
         self.project_name = project_name
-        self.file_paths = []
-        self.file_names = []
 
     def init_db(self):
         db_open(self.db_name)
 
-    def get_java_files(self):
-        for dir_path, _, file_names in os.walk(self.project_dir):
-            for file in file_names:
-                if '.java' in str(file):
-                    path = os.path.join(dir_path, file)
-                    path = path.replace("/", "\\")
-                    self.file_paths.append(path)
-                    self.file_names.append(file)
-
-
-def get_parse_tree(file_path):
-    file = FileStream(file_path, encoding="utf-8")
-    lexer = JavaLexer(file)
-    tokens = CommonTokenStream(lexer)
-    parser = JavaParserLabeled(tokens)
-    return parser.compilationUnit()
-
-
 def main():
-    p = Project(DB_PATH, PROJECT_PATH, PROJECT_NAME)
+    p = Project(DB_PATH, PROJECT_NAME)
     p.init_db()
     count = 0
     class_count_function = {}
