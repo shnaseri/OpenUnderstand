@@ -43,7 +43,6 @@ class Project:
                     path = path.replace("/", "\\")
                     self.file_paths.append(path)
                     self.file_names.append(file)
-                    a = "5041721041668394"
 
 
 def get_parse_tree(file_path):
